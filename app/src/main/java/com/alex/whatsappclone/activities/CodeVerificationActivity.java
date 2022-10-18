@@ -3,6 +3,7 @@ package com.alex.whatsappclone.activities;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,8 +14,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alex.whatsappclone.R;
+import com.alex.whatsappclone.models.User;
 import com.alex.whatsappclone.providers.AuthProvider;
+import com.alex.whatsappclone.providers.UsersProvider;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
@@ -31,9 +35,10 @@ public class CodeVerificationActivity extends AppCompatActivity {
     ProgressBar mProgressBar;
 
     String mExtraPhone;
+    String mVerificationId;
 
     AuthProvider mAuthProvider;
-    String mVerificationId;
+    UsersProvider mUsersProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +51,8 @@ public class CodeVerificationActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.progressBar);
 
         mAuthProvider = new AuthProvider();
+        mUsersProvider = new UsersProvider();
+
         mExtraPhone = getIntent().getStringExtra("phone");
         //Toast.makeText(this, mExtraPhone, Toast.LENGTH_SHORT).show();
 
@@ -99,6 +106,17 @@ public class CodeVerificationActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
+                    User user = new User();
+                    user.setId(mAuthProvider.getId());
+                    user.setPhone(mExtraPhone);
+                    mUsersProvider.create(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            goToCompleteInfo();
+                        }
+                    });
+
+
                     Log.d(TAG, "signInWithCredential:success");
                     Toast.makeText(CodeVerificationActivity.this, "La autenticacion fue exitosa", Toast.LENGTH_SHORT).show();
                 }
@@ -108,5 +126,10 @@ public class CodeVerificationActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void goToCompleteInfo() {
+        Intent i = new Intent(CodeVerificationActivity.this, CompleteInfoActivity.class);
+        startActivity(i);
     }
 }

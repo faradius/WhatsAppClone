@@ -32,4 +32,13 @@ public class AuthProvider {
         return mAuth.signInWithCredential(credential);
     }
 
+    public String getId(){
+        if (mAuth.getCurrentUser() != null){
+            return mAuth.getCurrentUser().getUid();
+        }else {
+            return null;
+        }
+
+    }
+
 }
