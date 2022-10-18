@@ -24,6 +24,7 @@ import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 public class CodeVerificationActivity extends AppCompatActivity {
 
@@ -106,15 +107,27 @@ public class CodeVerificationActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    User user = new User();
+                    final User user = new User();
                     user.setId(mAuthProvider.getId());
                     user.setPhone(mExtraPhone);
-                    mUsersProvider.create(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+
+                    mUsersProvider.getUserInfo(mAuthProvider.getId()).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                         @Override
-                        public void onSuccess(Void unused) {
-                            goToCompleteInfo();
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if (!documentSnapshot.exists()){
+                                mUsersProvider.create(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        goToCompleteInfo();
+                                    }
+                                });
+                            }else {
+                                goToCompleteInfo();
+                            }
                         }
                     });
+
+
 
 
                     Log.d(TAG, "signInWithCredential:success");
